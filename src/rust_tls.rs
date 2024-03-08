@@ -109,7 +109,7 @@ mod connector {
     use log::debug;
 
     use crate::net::{
-        tcp_stream::stream, AsConnectionFd, BoxReadConnection, BoxWriteConnection, ConnectionFd,
+        tcp_stream::stream, BoxReadConnection, BoxWriteConnection, 
         DomainConnector, SplitConnection, TcpDomainConnector,
     };
 
@@ -132,9 +132,8 @@ mod connector {
         async fn connect(
             &self,
             domain: &str,
-        ) -> Result<(BoxWriteConnection, BoxReadConnection, ConnectionFd), IoError> {
+        ) -> Result<(BoxWriteConnection, BoxReadConnection), IoError> {
             let tcp_stream = stream(domain).await?;
-            let fd = tcp_stream.as_connection_fd();
             let (write, read) = self
                 .0
                 .connect(
@@ -148,7 +147,7 @@ mod connector {
                 )
                 .await?
                 .split_connection();
-            Ok((write, read, fd))
+            Ok((write, read))
         }
 
         fn new_domain(&self, _domain: String) -> DomainConnector {
@@ -177,10 +176,9 @@ mod connector {
         async fn connect(
             &self,
             addr: &str,
-        ) -> Result<(BoxWriteConnection, BoxReadConnection, ConnectionFd), IoError> {
+        ) -> Result<(BoxWriteConnection, BoxReadConnection), IoError> {
             debug!("connect to tls addr: {}", addr);
             let tcp_stream = stream(addr).await?;
-            let fd = tcp_stream.as_connection_fd();
             debug!("connect to tls domain: {}", self.domain);
             let (write, read) = self
                 .connector
@@ -195,7 +193,7 @@ mod connector {
                 )
                 .await?
                 .split_connection();
-            Ok((write, read, fd))
+            Ok((write, read))
         }
 
         fn new_domain(&self, domain: String) -> DomainConnector {

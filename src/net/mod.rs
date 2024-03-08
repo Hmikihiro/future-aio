@@ -42,10 +42,10 @@ mod conn {
 
     cfg_if::cfg_if! {
         if #[cfg(unix)] {
-            pub type ConnectionFd = std::os::unix::io::RawFd;
-            pub trait AsConnectionFd: std::os::unix::io::AsRawFd {
+            pub type ConnectionFd<'fd> = std::os::unix::io::BorrowedFd<'fd>;
+            pub trait AsConnectionFd: std::os::unix::io::AsFd {
                 fn as_connection_fd(&self) -> ConnectionFd {
-                    self.as_raw_fd()
+                    self.as_fd()
                 }
             }
             impl AsConnectionFd for async_net::TcpStream { }
@@ -75,7 +75,7 @@ mod conn {
         async fn connect(
             &self,
             domain: &str,
-        ) -> Result<(BoxWriteConnection, BoxReadConnection, ConnectionFd), IoError>;
+        ) -> Result<(BoxWriteConnection, BoxReadConnection), IoError>;
 
         // create new version of my self with new domain
         fn new_domain(&self, domain: String) -> DomainConnector;
@@ -182,12 +182,11 @@ mod unix_connector {
         async fn connect(
             &self,
             addr: &str,
-        ) -> Result<(BoxWriteConnection, BoxReadConnection, ConnectionFd), IoError> {
+        ) -> Result<(BoxWriteConnection, BoxReadConnection), IoError> {
             debug!("connect to tcp addr: {}", addr);
             let tcp_stream = stream(addr).await?;
 
-            let fd = tcp_stream.as_connection_fd();
-            Ok((Box::new(tcp_stream.clone()), Box::new(tcp_stream), fd))
+            Ok((Box::new(tcp_stream.clone()), Box::new(tcp_stream)))
         }
 
         fn new_domain(&self, _domain: String) -> DomainConnector {

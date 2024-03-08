@@ -1,5 +1,5 @@
 use std::io::Error as IoError;
-use std::os::unix::io::{AsRawFd, RawFd};
+use std::os::unix::io::{AsFd, BorrowedFd};
 use std::thread::sleep;
 use thiserror::Error;
 
@@ -30,17 +30,17 @@ pub enum SendFileError {
 }
 
 /// zero copy write
-pub struct ZeroCopy(RawFd);
+pub struct ZeroCopy(BorrowedFd<'_>);
 
 impl ZeroCopy {
     pub fn from<S>(fd: &mut S) -> Self
     where
-        S: AsRawFd,
+        S: AsFd,
     {
-        Self(fd.as_raw_fd())
+        Self(fd.as_fd())
     }
 
-    pub fn raw(fd: RawFd) -> Self {
+    pub fn raw(fd: BorrowedFd<'_>) -> Self {
         Self(fd)
     }
 }

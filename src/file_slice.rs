@@ -1,17 +1,17 @@
-use std::os::unix::io::AsRawFd;
-use std::os::unix::io::RawFd;
+use std::os::unix::io::AsFd;
+use std::os::unix::io::BorrowedFd;
 
 /// Slice of the file
 /// This works only on raw fd
-#[derive(Default, Debug, Clone)]
-pub struct AsyncFileSlice {
-    fd: RawFd,
+#[derive(Debug, Clone)]
+pub struct AsyncFileSlice<'fd> {
+    fd: BorrowedFd<'fd>,
     position: u64,
     len: u64,
 }
 
-impl AsyncFileSlice {
-    pub fn new(fd: RawFd, position: u64, len: u64) -> Self {
+impl<'fd> AsyncFileSlice<'fd> {
+    pub fn new(fd: BorrowedFd<'fd>, position: u64, len: u64) -> AsyncFileSlice<'fd> {
         Self { fd, position, len }
     }
 
@@ -27,13 +27,13 @@ impl AsyncFileSlice {
         self.len == 0
     }
 
-    pub fn fd(&self) -> RawFd {
+    pub fn fd(&self) -> BorrowedFd<'_> {
         self.fd
     }
 }
 
-impl AsRawFd for AsyncFileSlice {
-    fn as_raw_fd(&self) -> RawFd {
+impl AsFd for AsyncFileSlice<'_> {
+    fn as_fd(&self) -> BorrowedFd<'_> {
         self.fd
     }
 }

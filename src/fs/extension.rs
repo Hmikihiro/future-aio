@@ -3,7 +3,7 @@ use std::io::ErrorKind;
 use std::io::SeekFrom;
 
 #[cfg(unix)]
-use std::os::unix::io::AsRawFd;
+use std::os::unix::io::AsFd;
 
 use async_trait::async_trait;
 use futures_lite::AsyncSeekExt;
@@ -40,7 +40,7 @@ impl AsyncFileExtension for File {
     /// return raw slice with fiel descriptor, this doesn't not check
     #[cfg(unix)]
     fn raw_slice(&self, position: u64, len: u64) -> AsyncFileSlice {
-        AsyncFileSlice::new(self.as_raw_fd(), position, len)
+        AsyncFileSlice::new(self.as_fd(), position, len)
     }
 
     /// Extract slice of file using file descriptor
